@@ -3,12 +3,16 @@
 import { useState, useMemo, useEffect } from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import { Box, CircularProgress, darkScrollbar } from "@mui/material";
+import { Box, CircularProgress, darkScrollbar, Typography } from "@mui/material";
 import Navbar from "@/components/Navbar";
+import { usePathname } from "next/navigation";
+import NavbarLogin from "@/components/NavbarLogin";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   // State to track the theme
   const [isDarkMode, setIsDarkMode] = useState<boolean | undefined>(undefined);
+  const pathname = usePathname(); // Get the current route
+
 
   // Effect to read from localStorage only after mounting on client side
   useEffect(() => {
@@ -73,7 +77,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <Navbar toggleTheme={toggleTheme} isDarkMode={isDarkMode} />
+          {pathname !== "/login" ? (
+            <Navbar
+              toggleTheme={() => setIsDarkMode((prev) => !prev)}
+              isDarkMode={isDarkMode}
+            />
+          ): (
+            <NavbarLogin 
+              toggleTheme={() => setIsDarkMode((prev) => !prev)}
+              isDarkMode={isDarkMode}/>
+          )}
           {children}
         </ThemeProvider>
       </body>

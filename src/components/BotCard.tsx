@@ -1,6 +1,6 @@
 "use client"; 
-import { Avatar, Card, CardContent, CardHeader, Typography, Box } from '@mui/material';
-import { red, green, grey } from '@mui/material/colors';
+import { Avatar, Card, CardContent, CardHeader, Typography, Box, CardActionArea } from '@mui/material';
+import { red, green, grey, purple } from '@mui/material/colors';
 import * as React from 'react';
 
 interface BotCardProps {
@@ -14,10 +14,11 @@ export default function BotCard({botName, online}: BotCardProps) {
 
   return (
     <Card>
+    <CardActionArea>
       <CardHeader
         avatar={
-          <Avatar sx={{ bgcolor: red[500] }} aria-label="bot">
-            B
+          <Avatar sx={{ bgcolor: purple[200] }} aria-label="bot">
+            Ki
           </Avatar>
         }
         title={botName}
@@ -43,6 +44,7 @@ export default function BotCard({botName, online}: BotCardProps) {
           Test
         </Typography>
       </CardContent>
+      </CardActionArea>
     </Card>
   );
 }

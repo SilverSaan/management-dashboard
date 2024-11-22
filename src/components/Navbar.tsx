@@ -54,7 +54,7 @@ const Navbar: React.FC<NavbarProps> = ({toggleTheme, isDarkMode}) => {
   return (
     <>
     <CssBaseline /><AppBar component="nav" position="static">
-          <Toolbar>
+          <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <IconButton
                   color="inherit"
                   aria-label="open drawer"
@@ -78,7 +78,7 @@ const Navbar: React.FC<NavbarProps> = ({toggleTheme, isDarkMode}) => {
                       </Button>
                   ))}
               </Box>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{ justifyContent:'right', alignItems: 'center' }}>
                 <IconButton onClick={toggleTheme} color="inherit" size="large">
                 {isDarkMode ? <LightModeIcon fontSize="large" /> : <DarkModeIcon fontSize="large"/>}
                 </IconButton>

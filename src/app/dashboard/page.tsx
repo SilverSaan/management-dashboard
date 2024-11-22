@@ -42,7 +42,7 @@ export default function Dashboard() {
       <Typography variant="h3" component="h1">
         Arc Guild Bot Status
       </Typography>
-      <Button variant="contained" color="primary" onClick={Refresh}>
+      <Button variant="contained" color="secondary" onClick={Refresh}>
         Refresh Stats
       </Button>
       <Typography>
