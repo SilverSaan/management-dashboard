@@ -15,19 +15,51 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
-
+import { Badge } from '@mui/material';
+import MailIcon from '@mui/icons-material/Mail';
+import { BatIcon } from './CustomIcons/CustomIcons';
+import Notifications from './NotificationBar';
+import { redirect } from 'next/navigation'
 
 const drawerWidth = 240;
-const navItems = ['Home', 'About', 'Contact'];
+const navItems = [
+
+  {text:'Home', href: '/'},
+  {text:'About', href: '/about'},
+  {text:'Contact', href: '/'}
+];
 const container = undefined;
 
 interface NavbarProps {
-    toggleTheme: () => void;  // Function that toggles the theme
-    isDarkMode: boolean;      // Boolean indicating dark mode state
+  toggleTheme: () => void;  // Function that toggles the theme
+  themeMode: "light" | "dark" | "dracula" ;      // Boolean indicating dark mode state
+}
+
+interface IconChangeProps {
+themeMode: "light" | "dark" | "dracula" ;      // Boolean indicating dark mode state
+}
+
+function IconThemeChange({themeMode}: IconChangeProps){
+  if(themeMode == "light"){
+    return (
+      <LightModeIcon fontSize="large" />
+    )
+  }else if(themeMode == "dark"){
+    return(
+    <DarkModeIcon fontSize="large"/>
+    )
+  }else{
+    return(
+      <BatIcon fontSize='large'/>
+    )
   }
 
-const Navbar: React.FC<NavbarProps> = ({toggleTheme, isDarkMode}) => {
+}
+
+const Navbar: React.FC<NavbarProps> = ({toggleTheme, themeMode}) => {
+    
   const [mobileOpen, setMobileOpen] = React.useState(false);
+
 
   const handleDrawerToggle = () => {
     setMobileOpen((prevState) => !prevState);
@@ -41,9 +73,13 @@ const Navbar: React.FC<NavbarProps> = ({toggleTheme, isDarkMode}) => {
       <Divider />
       <List>
         {navItems.map((item) => (
-          <ListItem key={item} disablePadding>
-            <ListItemButton sx={{ textAlign: 'center' }}>
-              <ListItemText primary={item} />
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton sx={{ textAlign: 'center' }} onClick={(e) => {
+                e.preventDefault();
+                redirect(item.href);
+              }}
+              >
+              <ListItemText primary={item.text} />
             </ListItemButton>
           </ListItem>
         ))}
@@ -71,16 +107,18 @@ const Navbar: React.FC<NavbarProps> = ({toggleTheme, isDarkMode}) => {
               >
                   Admin Bot Panel: Arc
               </Typography>
+              <Notifications/>
               <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
                   {navItems.map((item) => (
-                      <Button key={item} sx={{ color: '#fff' }}>
-                          {item}
+                      <Button key={item.text} sx={{ color: '#fff' }} onClick={() => redirect(item.href)}>
+                          {item.text}
                       </Button>
                   ))}
               </Box>
+              
             <div style={{ justifyContent:'right', alignItems: 'center' }}>
                 <IconButton onClick={toggleTheme} color="inherit" size="large">
-                {isDarkMode ? <LightModeIcon fontSize="large" /> : <DarkModeIcon fontSize="large"/>}
+                  <IconThemeChange themeMode={themeMode}/>
                 </IconButton>
             </div>
           </Toolbar>

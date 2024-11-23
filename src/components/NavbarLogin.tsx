@@ -15,6 +15,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
+import { BatIcon } from './CustomIcons/CustomIcons';
 
 
 const drawerWidth = 240;
@@ -23,18 +24,41 @@ const container = undefined;
 
 interface NavbarProps {
     toggleTheme: () => void;  // Function that toggles the theme
-    isDarkMode: boolean;      // Boolean indicating dark mode state
+    themeMode: "light" | "dark" | "dracula" ;      // Boolean indicating dark mode state
   }
 
-const NavbarLogin: React.FC<NavbarProps> = ({toggleTheme, isDarkMode}) => {
+interface IconChangeProps {
+  themeMode: "light" | "dark" | "dracula" ;      // Boolean indicating dark mode state
+}
 
+function IconThemeChange({themeMode}: IconChangeProps){
+  if(themeMode == "light"){
+    return (
+      <LightModeIcon fontSize="large" />
+    )
+  }else if(themeMode == "dark"){
+    return(
+    <DarkModeIcon fontSize="large"/>
+    )
+  }else{
+    return(
+      <BatIcon fontSize='large'/>
+    )
+  }
+
+}
+
+const NavbarLogin: React.FC<NavbarProps> = ({toggleTheme, themeMode}) => {
+
+
+  
 
   return (
     <>
     <CssBaseline />
             <div style={{ display: 'flex', justifyContent:'flex-end', alignItems: 'center', paddingRight:'10px' }}>
                 <IconButton onClick={toggleTheme} color="inherit" size="large">
-                {isDarkMode ? <LightModeIcon fontSize="large" /> : <DarkModeIcon fontSize="large"/>}
+                  <IconThemeChange themeMode={themeMode}/>
                 </IconButton>
             </div>
     </>

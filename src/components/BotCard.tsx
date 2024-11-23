@@ -33,7 +33,7 @@ export default function BotCard({botName, online}: BotCardProps) {
                 bgcolor: isOnline ? green[500] : grey[500],
               }}
             />
-            <Typography variant="body2" sx={{ color: isOnline ? green[500] : grey[500] }}>
+            <Typography variant="body2" sx={{ color: isOnline ? green[500] : grey[500], display: { xs: 'none', sm: 'block' } }}>
               {isOnline ? 'Online' : 'Offline'}
             </Typography>
           </Box>

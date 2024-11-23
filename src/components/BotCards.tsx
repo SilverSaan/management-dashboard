@@ -23,8 +23,8 @@ export default function BotCards({ numberOfBotsAp }: BotCardsProps) {
             {Array.from({ length: numberOfBots }).map((_, index) => (
               <Fade in={true} timeout={500} key={`bot-card-${index}-fade`}>
 
-              <Grid size={4}  key={`bot-card-${index}`}>
-                    <BotCard botName={`bot-card-${index}`}
+              <Grid size={4}  key={`bot-card-${index}`} minWidth={142}>
+                    <BotCard botName={`bot-card-${index}`} 
                     online={Math.floor(Math.random() * 100) % 2 == 0? true:false} /> 
               </Grid>
               </Fade>
