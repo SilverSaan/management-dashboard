@@ -3,8 +3,11 @@
 import BotCards from '@/components/BotCards';
 import { Container, Typography, Button, Box } from '@mui/material';
 import { useEffect, useState } from 'react';
+import {Bot} from '@/types'
+
 
 export default function Dashboard() {
+  const [bots, setBots] = useState<Bot[] | null>(null);
   const [botStats, setBotStats] = useState(null);
   const [refreshStat, raiseStat] = useState(1)
 
@@ -22,41 +25,36 @@ export default function Dashboard() {
 
 
   useEffect(() => {
-    // Fetch bot stats from the Elysia API
-    fetch('http://localhost:3001/bot-stats')
+    // Fetch all bots from the Elysia API
+    fetch('http://localhost:3001/bots')
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Failed to fetch');
+          throw new Error('Failed to fetch bots');
         }
         return response.json();
       })
-      .then((data) => setBotStats(data))
+      .then((data: Bot[]) => setBots(data))
       .catch((error) => {
-        console.error('Error fetching bot stats:', error);
+        console.error('Error fetching bots:', error);
+        setBots(null); // Ensure state is reset on error
       });
   }, [refreshStat]);
 
 
   return (
-    <><Box sx={{ paddingLeft: '5%', paddingRight:'5%', paddingTop: '2%' }}>
+    <Box sx={{ paddingLeft: '5%', paddingRight: '5%', paddingTop: '2%' }}>
       <Typography variant="h3" component="h1">
-        Arc Guild Bot Status
+        Arc Guild Bot Dashboard
       </Typography>
       <Button variant="contained" onClick={Refresh}>
-        Refresh Stats
+        Refresh Bots
       </Button>
       <Typography>
-        Online Users: {botStats?botStats["onlineUsers"]: "N/A"}
-      </Typography>
-      <Typography>
-        Number of Bots: {botStats? botStats["activeBots"]: "N/A"}
-
+        Total Bots: {bots ? bots.length : "Loading..."}
       </Typography>
 
-      <BotCards 
-      numberOfBotsAp={botStats? botStats["activeBots"]: 0}/>
-
-    </Box></>
+      <BotCards bots={bots || []}/>
+  </Box>
 
   );
 }

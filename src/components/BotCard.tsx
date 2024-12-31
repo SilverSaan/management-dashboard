@@ -2,23 +2,28 @@
 import { Avatar, Card, CardContent, CardHeader, Typography, Box, CardActionArea } from '@mui/material';
 import { red, green, grey, purple } from '@mui/material/colors';
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 
 interface BotCardProps {
     botName: string;
     online: boolean;
+    lastUpdate: string;
+    botId: number;
   }
 
-export default function BotCard({botName, online}: BotCardProps) {
+export default function BotCard({botName, online, lastUpdate, botId}: BotCardProps) {
   // Placeholder status for the bot; this can be dynamic in the future.
   const isOnline = online;
+  const router = useRouter()
+
 
   return (
     <Card>
-    <CardActionArea>
+    <CardActionArea onClick={() => {router.push(`/bot/${botId}`) }}>
       <CardHeader
         avatar={
           <Avatar sx={{ bgcolor: purple[200] }} aria-label="bot">
-            Ki
+            {botName.charAt(0)}
           </Avatar>
         }
         title={botName}
@@ -41,7 +46,7 @@ export default function BotCard({botName, online}: BotCardProps) {
       />
       <CardContent>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          Test
+          Updated at {lastUpdate}
         </Typography>
       </CardContent>
       </CardActionArea>
