@@ -5,7 +5,7 @@ import { use } from "react";
 
 
 import axios from 'axios';
-import { Box, Typography, Paper } from '@mui/material';
+import { Box, Typography, Paper, Button } from '@mui/material';
 
 interface Bot {
   id: number;
@@ -88,15 +88,17 @@ const BotDetails = ({ params }: { params: Promise<{ id: string }>}) => {
   
           {/* Image Content */}
           <Box
-            component="img"
             sx={{
               height: 'auto',
               marginLeft: 2,
               borderRadius: '8px', // Optional for rounded corners
-            }}
-            src="/images/matsutake.gif"
-            alt="hai hai"
-          />
+            }} 
+          >
+            {/* Button to turn off bot */}
+            <Button variant="contained" color="secondary">
+              Turn off
+            </Button>
+          </Box>
         </Box>
       </Paper>
     </Box>
