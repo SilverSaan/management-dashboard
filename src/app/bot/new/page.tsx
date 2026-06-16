@@ -5,143 +5,121 @@ import {
   Button,
   FormControl,
   TextField,
-  Avatar,
-  Input,
-  styled,
+  Alert,
+  IconButton,
+  InputAdornment,
 } from "@mui/material";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import React, { useState } from "react";
 
-
-
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({
-    name: "",
-    authKey: "",
-    discordId: "",
-  });
-  const [image, setImage] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null); // Image preview URL
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setImage(file);
-
-      // Generate a preview URL for the selected image
-      const previewUrl = URL.createObjectURL(file);
-      setPreview(previewUrl);
-    }
-  };
+  const [name, setName] = useState("");
+  const [generatedKey, setGeneratedKey] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
-    if (!formData.name || !formData.authKey || !formData.discordId || !image) {
-      alert("All fields are required, including the image.");
+    if (!name.trim()) {
+      setError("Bot name is required.");
       return;
     }
 
-    const formDataObj = new FormData();
-    formDataObj.append("name", formData.name);
-    formDataObj.append("auth_key", formData.authKey);
-    formDataObj.append("bot_discord_id", formData.discordId);
-    formDataObj.append("image", image);
-    formDataObj.append("owner_id", "1");
+    setLoading(true);
 
     try {
       const response = await fetch("http://localhost:3001/bots", {
         method: "POST",
-        body: formDataObj,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, owner_id: "1" }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        alert("Bot registered successfully!");
+        setGeneratedKey(data.authKey);
       } else {
-        const errorData = await response.json();
-        alert(`Failed to register bot: ${errorData.message}`);
+        setError(data.message ?? "Failed to register bot.");
       }
     } catch (err) {
-      console.error("Error submitting form:", err);
-      alert("An unexpected error occurred.");
+      setError("An unexpected error occurred.");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleCopy = () => {
+    if (!generatedKey) return;
+    navigator.clipboard.writeText(generatedKey);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
     <Box sx={{ paddingLeft: "2%", paddingRight: "5%", paddingTop: "2%" }}>
       <Typography variant="h2">New Bot</Typography>
 
-      <Box component="form" noValidate autoComplete="off" onSubmit={handleSubmit} sx={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        gap: "2rem",
-        width: "50%"
-      }}>
-        {/* Left Side: Form Fields */}
-        <Box sx={{ flex: 1 }}>
-          <FormControl sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+      {!generatedKey ? (
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{ display: "flex", flexDirection: "column", gap: "1rem", width: "30%" }}
+        >
+          <FormControl>
             <TextField
-              id="name"
               label="Bot Name"
               variant="outlined"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-            />
-            <TextField
-              id="authKey"
-              label="Authentication Key"
-              variant="outlined"
-              name="authKey"
-              value={formData.authKey}
-              onChange={handleInputChange}
-            />
-            <TextField
-              id="discordId"
-              label="Discord ID"
-              variant="outlined"
-              name="discordId"
-              value={formData.discordId}
-              onChange={handleInputChange}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
           </FormControl>
-          <Button type="submit" variant="contained" color="primary" sx={{ marginTop: "1rem" }}>
-            Register Bot
+
+          {error && <Alert severity="error">{error}</Alert>}
+
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={loading}
+          >
+            {loading ? "Registering..." : "Register Bot"}
           </Button>
         </Box>
+      ) : (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "1rem", width: "40%" }}>
+          <Alert severity="success">
+            Bot registered! Copy the authentication key below and paste it into your bot's <code>.env</code>. You won't see it again.
+          </Alert>
 
-        <Box sx={{ textAlign: "center" }}>
-          <Avatar
-            src={preview || ""}
-            alt="Bot Avatar"
-            sx={{
-              width: 120,
-              height: 120,
-              marginBottom: "1rem",
-              border: "1px solid #ccc",
+          <TextField
+            label="Authentication Key"
+            value={generatedKey}
+            fullWidth
+            InputProps={{
+              readOnly: true,
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={handleCopy}>
+                    <ContentCopyIcon />
+                  </IconButton>
+                </InputAdornment>
+              ),
             }}
           />
-          <Input
-            type="file"
-            onChange={handleFileChange}
-            inputProps={{ accept: "image/*" }}
-            sx={{
-              display: "none",
-            }}
-            id="upload-button"
-          />
-          <label htmlFor="upload-button">
-            <Button variant="outlined" component="span">
-              Upload Image
-            </Button>
-          </label>
+
+          {copied && <Alert severity="info">Copied to clipboard!</Alert>}
+
+          <Button
+            variant="outlined"
+            onClick={() => { setGeneratedKey(null); setName(""); }}
+          >
+            Register Another Bot
+          </Button>
         </Box>
-      </Box>
+      )}
     </Box>
   );
 }
