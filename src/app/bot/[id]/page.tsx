@@ -2,9 +2,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { use } from "react";
 import axios from 'axios';
-import { Box, Typography, Paper, Button, Card, CardContent, IconButton } from '@mui/material';
+import { Box, Typography, Paper, Button, Card, CardContent, IconButton, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Dialog, DialogTitle, Chip, DialogContent, DialogActions } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { Command } from '@/types';
 
 interface Bot {
   id: number;
@@ -66,9 +67,113 @@ const GuildCarousel = ({ guilds }: { guilds: Guild[] }) => {
   );
 };
 
+// --- Command History Dialog ---
+
+const CommandHistoryDialog = ({
+  command,
+  onClose,
+}: {
+  command: Command | null;
+  onClose: () => void;
+}) => (
+  <Dialog open={!!command} onClose={onClose} maxWidth="lg" fullWidth>
+    <DialogTitle>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <code>/{command?.commandName}</code>
+        <Chip label={`${command?.history.length} uses`} size="small" />
+      </Box>
+    </DialogTitle>
+    <DialogContent>
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>User</TableCell>
+              <TableCell>Input</TableCell>
+              <TableCell>Response</TableCell>
+              <TableCell>Guild</TableCell>
+              <TableCell>When</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {command?.history.map((h, i) => (
+              <TableRow key={i}>
+                <TableCell>{h.userNickname}</TableCell>
+                <TableCell>
+                  {h.requestMessage
+                    ? <code>{h.requestMessage}</code>
+                    : <Typography variant="caption" color="text.secondary">—</Typography>
+                  }
+                </TableCell>
+                <TableCell sx={{ maxWidth: 300 }}>
+                  <Typography variant="body2" sx={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: 300,
+                  }}>
+                    {h.response}
+                  </Typography>
+                </TableCell>
+                <TableCell>{h.guildName}</TableCell>
+                <TableCell>{new Date(h.createdAt).toLocaleString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={onClose}>Close</Button>
+    </DialogActions>
+  </Dialog>
+);
+
+// --- Commands Table ---
+
+const CommandsTable = ({ commands }: { commands: Command[] }) => {
+  const [selected, setSelected] = useState<Command | null>(null);
+
+  return (
+    <>
+      <Typography variant="h5" sx={{ marginBottom: 1 }}>Commands</Typography>
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Command</TableCell>
+              <TableCell>Total Uses</TableCell>
+              <TableCell>First Seen</TableCell>
+              <TableCell />
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {commands.map(cmd => (
+              <TableRow key={cmd.commandName} hover>
+                <TableCell><code>/{cmd.commandName}</code></TableCell>
+                <TableCell>{cmd.history.length}</TableCell>
+                <TableCell>{new Date(cmd.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell align="right">
+                  <Button size="small" onClick={() => setSelected(cmd)}>
+                    View History
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <CommandHistoryDialog command={selected} onClose={() => setSelected(null)} />
+    </>
+  );
+};
+
+
 const BotDetails = ({ params }: { params: Promise<{ id: string }> }) => {
   const [bot, setBot] = useState<Bot | null>(null);
   const [guilds, setGuilds] = useState<Guild[]>([]);
+  const [commands, setCommands] = useState<Command[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,12 +181,14 @@ const BotDetails = ({ params }: { params: Promise<{ id: string }> }) => {
 
   const fetchBotDetails = async () => {
     try {
-      const [botRes, guildsRes] = await Promise.all([
+      const [botRes, guildsRes, commandsRes] = await Promise.all([
         axios.get(`http://localhost:3001/bots/${id}`),
         axios.get(`http://localhost:3001/bots/${id}/guilds`),
+        axios.get(`http://localhost:3001/bots/${id}/commands`),
       ]);
       setBot(botRes.data);
       setGuilds(guildsRes.data);
+      setCommands(commandsRes.data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching bot details:', error);
@@ -96,21 +203,17 @@ const BotDetails = ({ params }: { params: Promise<{ id: string }> }) => {
     return () => clearInterval(interval);
   }, [id]);
 
-  if (loading) {
-    return (
-      <Box sx={{ padding: 2 }}>
-        <Typography variant="h6" align="center">Loading bot details...</Typography>
-      </Box>
-    );
-  }
+  if (loading) return (
+    <Box sx={{ padding: 2 }}>
+      <Typography variant="h6" align="center">Loading bot details...</Typography>
+    </Box>
+  );
 
-  if (error) {
-    return (
-      <Box sx={{ padding: 2 }}>
-        <Typography variant="h6" color="error" align="center">{error}</Typography>
-      </Box>
-    );
-  }
+  if (error) return (
+    <Box sx={{ padding: 2 }}>
+      <Typography variant="h6" color="error" align="center">{error}</Typography>
+    </Box>
+  );
 
   return (
     <Box sx={{ padding: 2 }}>
@@ -128,26 +231,27 @@ const BotDetails = ({ params }: { params: Promise<{ id: string }> }) => {
               <strong>Joined Infrastructure at:</strong> {new Date(bot?.createdAt || '').toLocaleString()}
             </Typography>
           </Box>
-
           <Box>
             <Button variant="contained" color="secondary">Turn off</Button>
           </Box>
         </Box>
-
-        
       </Paper>
 
       <Paper elevation={3} sx={{ padding: 2, marginTop: 2 }}>
-        {guilds.length > 0 && <GuildCarousel guilds={guilds} />}
-        {guilds.length === 0 && (
-          <Typography variant="body2" color="text.secondary" sx={{ marginTop: 2 }}>
-            No servers connected yet.
-          </Typography>
-        )}      
-        </Paper>
+        {guilds.length > 0
+          ? <GuildCarousel guilds={guilds} />
+          : <Typography variant="body2" color="text.secondary">No servers connected yet.</Typography>
+        }
+      </Paper>
+
+      <Paper elevation={3} sx={{ padding: 2, marginTop: 2 }}>
+        {commands.length > 0
+          ? <CommandsTable commands={commands} />
+          : <Typography variant="body2" color="text.secondary">No commands used yet.</Typography>
+        }
+      </Paper>
     </Box>
   );
-}
-   
+};
 
 export default BotDetails;
